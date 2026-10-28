@@ -282,7 +282,7 @@ public class CatalogEnvironment implements Serializable {
                 READ_VIA_OPTION, RESTUtil.encodeString(JsonSerdeUtil.toFlatJson(identifier)));
         return CatalogContext.create(
                 dependencyOptions,
-                catalogContext.hadoopConf(),
+                catalogContext.serializableHadoopConf(),
                 catalogContext.preferIO(),
                 catalogContext.fallbackIO());
     }

@@ -18,7 +18,6 @@
 
 package org.apache.paimon.s3;
 
-import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.fs.FileIO;
 import org.apache.paimon.fs.FileIOLoader;
 import org.apache.paimon.fs.Path;
@@ -26,6 +25,7 @@ import org.apache.paimon.fs.RenamingTwoPhaseOutputStream;
 import org.apache.paimon.fs.ResolvingFileIO;
 import org.apache.paimon.fs.TwoPhaseOutputStream;
 import org.apache.paimon.options.Options;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.InstantiationUtil;
 
 import org.apache.hadoop.conf.Configuration;
@@ -65,7 +65,7 @@ class S3ResolvingTwoPhaseCommitITCase {
     private ResolvingFileIO newResolver() {
         ResolvingFileIO resolver = new ResolvingFileIO();
         resolver.configure(
-                CatalogContext.create(
+                HadoopUtils.createCatalogContext(
                         Options.fromMap(MINIO.getS3ConfigOptions()),
                         new Configuration(),
                         S3_LOADER,

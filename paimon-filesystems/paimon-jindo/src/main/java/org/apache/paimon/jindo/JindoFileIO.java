@@ -26,6 +26,7 @@ import org.apache.paimon.fs.Path;
 import org.apache.paimon.fs.TwoPhaseOutputStream;
 import org.apache.paimon.options.Options;
 import org.apache.paimon.plugin.PluginLoader;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.IOUtils;
 import org.apache.paimon.utils.Pair;
 import org.apache.paimon.utils.SensitiveConfigUtils;
@@ -140,7 +141,7 @@ public class JindoFileIO extends HadoopCompliantFileIO implements HadoopOptionsP
             hadoopOptions.set("fs.oss.credentials.provider", SimpleCredentialsProvider.NAME);
         } else {
             LOG.info("Using hadoop conf init Jindo.");
-            context.hadoopConf()
+            HadoopUtils.hadoopConf(context)
                     .iterator()
                     .forEachRemaining(entry -> hadoopOptions.set(entry.getKey(), entry.getValue()));
         }

@@ -24,8 +24,6 @@ import org.apache.paimon.fs.Path;
 import org.apache.paimon.hadoop.SerializableConfiguration;
 import org.apache.paimon.options.Options;
 
-import org.apache.hadoop.conf.Configuration;
-
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
@@ -51,11 +49,11 @@ public class CatalogContext implements Serializable {
 
     private CatalogContext(
             Options options,
-            @Nullable Configuration hadoopConf,
+            @Nullable SerializableConfiguration hadoopConf,
             @Nullable FileIOLoader preferIOLoader,
             @Nullable FileIOLoader fallbackIOLoader) {
         this.options = checkNotNull(options);
-        this.hadoopConf = loadHadoopConfiguration(options, hadoopConf);
+        this.hadoopConf = hadoopConf == null ? loadHadoopConfiguration(options) : hadoopConf;
         this.preferIOLoader = preferIOLoader;
         this.fallbackIOLoader = fallbackIOLoader;
     }
@@ -70,10 +68,6 @@ public class CatalogContext implements Serializable {
         return new CatalogContext(options, null, null, null);
     }
 
-    public static CatalogContext create(Options options, Configuration hadoopConf) {
-        return new CatalogContext(options, hadoopConf, null, null);
-    }
-
     public static CatalogContext create(Options options, FileIOLoader fallbackIOLoader) {
         return new CatalogContext(options, null, null, fallbackIOLoader);
     }
@@ -85,7 +79,7 @@ public class CatalogContext implements Serializable {
 
     public static CatalogContext create(
             Options options,
-            Configuration hadoopConf,
+            @Nullable SerializableConfiguration hadoopConf,
             FileIOLoader preferIOLoader,
             FileIOLoader fallbackIOLoader) {
         return new CatalogContext(options, hadoopConf, preferIOLoader, fallbackIOLoader);
@@ -95,21 +89,16 @@ public class CatalogContext implements Serializable {
         return options;
     }
 
-    /** Return hadoop {@link Configuration}. */
-    public Configuration hadoopConf() {
-        if (hadoopConf == null) {
-            throw new IllegalStateException(
-                    "Hadoop configuration is not available for this CatalogContext.");
-        }
-        return hadoopConf.get();
+    /** Return the hadoop configuration, or null if Hadoop is not on the classpath. */
+    @Nullable
+    public SerializableConfiguration serializableHadoopConf() {
+        return hadoopConf;
     }
 
     @Nullable
-    private static SerializableConfiguration loadHadoopConfiguration(
-            Options options, @Nullable Configuration hadoopConf) {
+    private static SerializableConfiguration loadHadoopConfiguration(Options options) {
         try {
-            return new SerializableConfiguration(
-                    hadoopConf == null ? getHadoopConfiguration(options) : hadoopConf);
+            return new SerializableConfiguration(getHadoopConfiguration(options));
         } catch (NoClassDefFoundError e) {
             if (isHadoopClassNotFound(e)) {
                 return null;

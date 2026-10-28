@@ -30,6 +30,7 @@ import org.apache.paimon.fs.SeekableInputStream;
 import org.apache.paimon.hadoop.SerializableConfiguration;
 import org.apache.paimon.utils.FileIOUtils;
 import org.apache.paimon.utils.FunctionWithException;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.Pair;
 import org.apache.paimon.utils.ReflectionUtils;
 
@@ -81,7 +82,7 @@ public class HadoopFileIO implements FileIO, HadoopOptionsProvider {
 
     @Override
     public void configure(CatalogContext context) {
-        this.hadoopConf = new SerializableConfiguration(context.hadoopConf());
+        this.hadoopConf = new SerializableConfiguration(HadoopUtils.hadoopConf(context));
         this.options = context.options();
     }
 

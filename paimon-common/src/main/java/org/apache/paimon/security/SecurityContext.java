@@ -48,7 +48,7 @@ public class SecurityContext {
 
     /** Installs security configuration by {@link CatalogContext}. */
     public static void install(CatalogContext catalogContext) throws Exception {
-        install(catalogContext.options(), catalogContext.hadoopConf());
+        install(catalogContext.options(), HadoopUtils.hadoopConf(catalogContext));
     }
 
     private static void install(Options options, Configuration configuration) throws Exception {

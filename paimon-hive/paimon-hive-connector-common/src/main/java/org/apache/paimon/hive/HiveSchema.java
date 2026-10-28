@@ -29,6 +29,7 @@ import org.apache.paimon.schema.TableSchema;
 import org.apache.paimon.types.DataField;
 import org.apache.paimon.types.DataType;
 import org.apache.paimon.types.RowType;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.StringUtils;
 
 import org.apache.paimon.shade.guava30.com.google.common.base.Splitter;
@@ -201,7 +202,7 @@ public class HiveSchema {
         Path path = new Path(location);
         Options options = HiveUtils.extractCatalogConfig(configuration);
         options.set(CoreOptions.PATH, location);
-        CatalogContext context = CatalogContext.create(options, configuration);
+        CatalogContext context = HadoopUtils.createCatalogContext(options, configuration);
         try {
             return new FileSystemSchemaManager(FileIO.get(path, context), path).latest();
         } catch (IOException e) {

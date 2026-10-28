@@ -37,6 +37,7 @@ import org.apache.paimon.stats.Statistics;
 import org.apache.paimon.table.sink.BatchTableCommit;
 import org.apache.paimon.table.sink.CommitMessage;
 import org.apache.paimon.table.sink.TableCommit;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.Pair;
 import org.apache.paimon.utils.PartitionPathUtils;
 import org.apache.paimon.utils.ThreadPoolUtils;
@@ -194,7 +195,8 @@ public class FormatTableCommit implements BatchTableCommit {
                 options.set(CatalogOptions.URI, syncHiveUri);
                 options.set(CatalogOptions.METASTORE, "hive");
                 CatalogContext context =
-                        CatalogContext.create(options, catalogContext.hadoopConf());
+                        HadoopUtils.createCatalogContext(
+                                options, HadoopUtils.hadoopConf(catalogContext));
                 this.hiveCatalog = CatalogFactory.createCatalog(context);
             } catch (Exception e) {
                 throw new RuntimeException(

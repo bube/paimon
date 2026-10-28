@@ -28,6 +28,7 @@ import org.apache.paimon.predicate.Predicate;
 import org.apache.paimon.schema.TableSchema;
 import org.apache.paimon.table.FileStoreTable;
 import org.apache.paimon.table.FileStoreTableFactory;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.PartitionPathUtils;
 
 import org.apache.hadoop.conf.Configuration;
@@ -58,7 +59,7 @@ public class HiveUtils {
 
         CatalogContext catalogContext;
         if (options.get(HADOOP_LOAD_DEFAULT_CONFIG)) {
-            catalogContext = CatalogContext.create(options, jobConf);
+            catalogContext = HadoopUtils.createCatalogContext(options, jobConf);
         } else {
             catalogContext = CatalogContext.create(options);
         }

@@ -33,6 +33,7 @@ import org.apache.paimon.predicate.VectorSearch;
 import org.apache.paimon.types.ArrayType;
 import org.apache.paimon.types.DataType;
 import org.apache.paimon.types.FloatType;
+import org.apache.paimon.utils.HadoopUtils;
 
 import org.aliyun.lumina.Lumina;
 import org.aliyun.lumina.LuminaException;
@@ -225,7 +226,7 @@ public class LuminaVectorBenchmark {
             for (Map.Entry<String, String> entry : fsOptions.toMap().entrySet()) {
                 hadoopConf.set(entry.getKey(), entry.getValue());
             }
-            CatalogContext context = CatalogContext.create(fsOptions, hadoopConf);
+            CatalogContext context = HadoopUtils.createCatalogContext(fsOptions, hadoopConf);
             return FileIO.get(new Path(benchmarkPath), context);
         } else {
             return new LocalFileIO();

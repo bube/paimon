@@ -28,6 +28,7 @@ import org.apache.paimon.spark.util.OptionUtils.copyWithSQLConf
 import org.apache.paimon.table.{DataTable, FileStoreTable, FileStoreTableFactory}
 import org.apache.paimon.table.FormatTable.Format
 import org.apache.paimon.table.system.AuditLogTable
+import org.apache.paimon.utils.HadoopUtils
 
 import org.apache.spark.sql.{DataFrame, PaimonSparkSession, SaveMode => SparkSaveMode, SQLContext}
 import org.apache.spark.sql.connector.catalog.{Identifier => SparkIdentifier, SessionConfigSupport, Table, TableCatalog}
@@ -115,7 +116,7 @@ class SparkSource
         .copy(options)
     } else {
       val catalogContext =
-        CatalogContext.create(Options.fromMap(options), sessionState.newHadoopConf())
+        HadoopUtils.createCatalogContext(Options.fromMap(options), sessionState.newHadoopConf())
       copyWithSQLConf(FileStoreTableFactory.create(catalogContext), extraOptions = options)
     }
 

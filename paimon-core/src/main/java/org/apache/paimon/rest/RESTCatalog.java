@@ -129,7 +129,7 @@ public class RESTCatalog implements Catalog {
         this.context =
                 CatalogContext.create(
                         api.options(),
-                        context.hadoopConf(),
+                        context.serializableHadoopConf(),
                         context.preferIO(),
                         context.fallbackIO());
         this.dataTokenEnabled = api.options().get(RESTTokenFileIO.DATA_TOKEN_ENABLED);

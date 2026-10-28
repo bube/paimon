@@ -108,7 +108,7 @@ public class HiveCatalogTest extends CatalogTestBase {
         String metastoreClientClass = "org.apache.hadoop.hive.metastore.HiveMetaStoreClient";
         Options catalogOptions = new Options();
         catalogOptions.set(CatalogOptions.SYNC_ALL_PROPERTIES.key(), "false");
-        CatalogContext context = CatalogContext.create(catalogOptions, hiveConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(catalogOptions, hiveConf);
         catalog = new HiveCatalog(fileIO, hiveConf, metastoreClientClass, context, warehouse);
     }
 

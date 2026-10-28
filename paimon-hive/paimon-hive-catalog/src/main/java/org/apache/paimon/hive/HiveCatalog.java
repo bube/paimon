@@ -52,6 +52,7 @@ import org.apache.paimon.table.FormatTable;
 import org.apache.paimon.types.DataField;
 import org.apache.paimon.types.DataTypes;
 import org.apache.paimon.types.RowType;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.InternalRowPartitionComputer;
 import org.apache.paimon.utils.Pair;
 import org.apache.paimon.utils.PartitionPathUtils;
@@ -2052,7 +2053,8 @@ public class HiveCatalog extends AbstractCatalog {
         String hiveConfDir = context.options().get(HIVE_CONF_DIR);
         String hadoopConfDir = context.options().get(HADOOP_CONF_DIR);
         HiveConf hiveConf =
-                HiveCatalog.createHiveConf(hiveConfDir, hadoopConfDir, context.hadoopConf());
+                HiveCatalog.createHiveConf(
+                        hiveConfDir, hadoopConfDir, HadoopUtils.hadoopConf(context));
 
         // always using user-set parameters overwrite hive-site.xml parameters
         context.options().toMap().forEach(hiveConf::set);

@@ -32,6 +32,7 @@ import org.apache.paimon.schema.FileSystemSchemaManager;
 import org.apache.paimon.schema.Schema;
 import org.apache.paimon.schema.SchemaManager;
 import org.apache.paimon.schema.TableSchema;
+import org.apache.paimon.utils.HadoopUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.HiveMetaHook;
@@ -187,6 +188,6 @@ public class PaimonMetaHook implements HiveMetaHook {
         Options options = HiveUtils.extractCatalogConfig(conf);
         options.set(CoreOptions.PATH, location);
         table.getParameters().forEach(options::set);
-        return CatalogContext.create(options, conf);
+        return HadoopUtils.createCatalogContext(options, conf);
     }
 }

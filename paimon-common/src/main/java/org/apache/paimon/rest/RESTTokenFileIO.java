@@ -262,7 +262,7 @@ public class RESTTokenFileIO implements FileIO {
             CatalogContext context =
                     CatalogContext.create(
                             options,
-                            catalogContext.hadoopConf(),
+                            catalogContext.serializableHadoopConf(),
                             catalogContext.preferIO(),
                             catalogContext.fallbackIO());
             fileIO = FileIO.get(path, context);

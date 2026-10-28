@@ -20,7 +20,9 @@ package org.apache.paimon.utils;
 
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.fs.FileIO;
+import org.apache.paimon.fs.FileIOLoader;
 import org.apache.paimon.fs.Path;
+import org.apache.paimon.hadoop.SerializableConfiguration;
 import org.apache.paimon.options.ConfigOption;
 import org.apache.paimon.options.Options;
 import org.apache.paimon.options.description.DescribedEnum;
@@ -71,6 +73,32 @@ public class HadoopUtils {
 
     /** Path to Hadoop configuration. */
     public static final String PATH_HADOOP_CONFIG = "hadoop-conf-dir";
+
+    public static CatalogContext createCatalogContext(Options options, Configuration hadoopConf) {
+        return createCatalogContext(options, hadoopConf, null, null);
+    }
+
+    public static CatalogContext createCatalogContext(
+            Options options,
+            Configuration hadoopConf,
+            FileIOLoader preferIOLoader,
+            FileIOLoader fallbackIOLoader) {
+        return CatalogContext.create(
+                options,
+                new SerializableConfiguration(hadoopConf),
+                preferIOLoader,
+                fallbackIOLoader);
+    }
+
+    /** Throws IllegalStateException when the context has no Hadoop configuration. */
+    public static Configuration hadoopConf(CatalogContext context) {
+        SerializableConfiguration hadoopConf = context.serializableHadoopConf();
+        if (hadoopConf == null) {
+            throw new IllegalStateException(
+                    "Hadoop configuration is not available for this CatalogContext.");
+        }
+        return hadoopConf.get();
+    }
 
     public static Configuration getHadoopConfiguration(Options options) {
 
@@ -167,7 +195,7 @@ public class HadoopUtils {
         Path root = new Path(possibleHadoopConfPath);
 
         try {
-            FileIO fileIO = FileIO.get(root, CatalogContext.create(options, configuration));
+            FileIO fileIO = FileIO.get(root, createCatalogContext(options, configuration));
             boolean foundHadoopConfiguration = false;
 
             if (fileIO.exists(root)) {

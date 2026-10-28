@@ -22,6 +22,7 @@ import org.apache.paimon.CoreOptions;
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.fs.Path;
 import org.apache.paimon.partition.Partition;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.PartitionPathUtils;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -279,7 +280,7 @@ public final class FormatTablePartitionPathResolver {
     private static URI canonicalHdfsUri(URI uri, @Nullable CatalogContext catalogContext) {
         URI resolved = uri;
         if (resolved.getAuthority() == null && catalogContext != null) {
-            URI defaultUri = FileSystem.getDefaultUri(catalogContext.hadoopConf());
+            URI defaultUri = FileSystem.getDefaultUri(HadoopUtils.hadoopConf(catalogContext));
             if ("hdfs".equalsIgnoreCase(defaultUri.getScheme())
                     && defaultUri.getAuthority() != null) {
                 resolved = defaultUri;
@@ -302,7 +303,7 @@ public final class FormatTablePartitionPathResolver {
         if (catalogContext == null || uri.getHost() == null) {
             return null;
         }
-        String nameservices = catalogContext.hadoopConf().get("dfs.nameservices", "");
+        String nameservices = HadoopUtils.hadoopConf(catalogContext).get("dfs.nameservices", "");
         String requestedAuthority = canonicalHdfsAuthority(uri);
         String match = null;
         for (String name : nameservices.split(",")) {
@@ -314,19 +315,18 @@ public final class FormatTablePartitionPathResolver {
                     nameservice.equalsIgnoreCase(uri.getHost())
                             || matchesConfiguredHdfsAddress(
                                     requestedAuthority,
-                                    catalogContext
-                                            .hadoopConf()
+                                    HadoopUtils.hadoopConf(catalogContext)
                                             .get("dfs.namenode.rpc-address." + nameservice));
             String namenodes =
-                    catalogContext.hadoopConf().get("dfs.ha.namenodes." + nameservice, "");
+                    HadoopUtils.hadoopConf(catalogContext)
+                            .get("dfs.ha.namenodes." + nameservice, "");
             for (String node : namenodes.split(",")) {
                 String nodeId = node.trim();
                 if (nodeId.isEmpty()) {
                     continue;
                 }
                 String address =
-                        catalogContext
-                                .hadoopConf()
+                        HadoopUtils.hadoopConf(catalogContext)
                                 .get("dfs.namenode.rpc-address." + nameservice + "." + nodeId);
                 if (address == null || address.trim().isEmpty()) {
                     continue;

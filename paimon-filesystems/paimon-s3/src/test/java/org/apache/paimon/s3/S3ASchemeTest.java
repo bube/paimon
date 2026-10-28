@@ -23,6 +23,7 @@ import org.apache.paimon.fs.FileIO;
 import org.apache.paimon.fs.FileIOLoader;
 import org.apache.paimon.fs.Path;
 import org.apache.paimon.options.Options;
+import org.apache.paimon.utils.HadoopUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,8 @@ public class S3ASchemeTest {
 
         Options options = new Options();
         MINIO.getS3ConfigOptions().forEach(options::set);
-        FileIO fileIO = FileIO.get(path, CatalogContext.create(options, new Configuration()));
+        FileIO fileIO =
+                FileIO.get(path, HadoopUtils.createCatalogContext(options, new Configuration()));
 
         System.out.println("[s3a] FileIO class = " + fileIO.getClass().getName());
         assertTrue(
@@ -78,7 +80,7 @@ public class S3ASchemeTest {
         String name = "both-" + UUID.randomUUID() + ".txt";
         Options options = new Options();
         MINIO.getS3ConfigOptions().forEach(options::set);
-        CatalogContext context = CatalogContext.create(options, new Configuration());
+        CatalogContext context = HadoopUtils.createCatalogContext(options, new Configuration());
 
         Path s3Path = new Path("s3://" + bucket + "/s3a-test/" + name);
         Path s3aPath = new Path("s3a://" + bucket + "/s3a-test/" + name);
@@ -105,7 +107,8 @@ public class S3ASchemeTest {
 
         Options options = new Options();
         MINIO.getS3ConfigOptions().forEach(options::set);
-        FileIO fileIO = FileIO.get(path, CatalogContext.create(options, new Configuration()));
+        FileIO fileIO =
+                FileIO.get(path, HadoopUtils.createCatalogContext(options, new Configuration()));
         fileIO.writeFile(path, "probe", true);
 
         // unwrap PluginFileIO -> S3FileIO (loaded in the plugin classloader)

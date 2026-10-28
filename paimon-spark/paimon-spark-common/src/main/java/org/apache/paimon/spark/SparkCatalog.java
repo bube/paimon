@@ -46,6 +46,7 @@ import org.apache.paimon.types.DataField;
 import org.apache.paimon.types.DataType;
 import org.apache.paimon.types.VectorType;
 import org.apache.paimon.utils.ExceptionUtils;
+import org.apache.paimon.utils.HadoopUtils;
 import org.apache.paimon.utils.StringUtils;
 
 import org.apache.spark.sql.PaimonSparkSession$;
@@ -140,7 +141,7 @@ public class SparkCatalog extends SparkBaseCatalog
         checkRequiredConfigurations(sparkSession);
         this.catalogName = name;
         CatalogContext catalogContext =
-                CatalogContext.create(
+                HadoopUtils.createCatalogContext(
                         Options.fromMap(options.asCaseSensitiveMap()),
                         sparkSession.sessionState().newHadoopConf());
         this.catalog = CatalogFactory.createCatalog(catalogContext);

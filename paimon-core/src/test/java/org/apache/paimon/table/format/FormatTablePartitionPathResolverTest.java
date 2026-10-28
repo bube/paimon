@@ -23,6 +23,7 @@ import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.fs.Path;
 import org.apache.paimon.options.Options;
 import org.apache.paimon.partition.Partition;
+import org.apache.paimon.utils.HadoopUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.HAUtilClient;
@@ -306,7 +307,7 @@ class FormatTablePartitionPathResolverTest {
     void testResolvesAuthoritylessHdfsAgainstCatalogDefault() {
         Configuration hadoopConf = new Configuration(false);
         hadoopConf.set("fs.defaultFS", "hdfs://localhost:8020");
-        CatalogContext context = CatalogContext.create(new Options(), hadoopConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(new Options(), hadoopConf);
         FormatTablePartitionPathResolver resolver =
                 new FormatTablePartitionPathResolver(
                         new Path("hdfs://localhost:8020/warehouse/table"),
@@ -327,7 +328,7 @@ class FormatTablePartitionPathResolverTest {
         Configuration hadoopConf = new Configuration(false);
         hadoopConf.set("fs.defaultFS", "hdfs://MYNS");
         hadoopConf.set("dfs.nameservices", "MYNS");
-        CatalogContext context = CatalogContext.create(new Options(), hadoopConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(new Options(), hadoopConf);
 
         Path canonical =
                 FormatTablePartitionPathResolver.canonicalizeCustomLocation(
@@ -345,7 +346,7 @@ class FormatTablePartitionPathResolverTest {
     void testCaseAmbiguousLogicalNameservicesFailClosed() {
         Configuration hadoopConf = new Configuration(false);
         hadoopConf.set("dfs.nameservices", "MYNS,myns");
-        CatalogContext context = CatalogContext.create(new Options(), hadoopConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(new Options(), hadoopConf);
 
         assertThatThrownBy(
                         () ->
@@ -359,7 +360,7 @@ class FormatTablePartitionPathResolverTest {
     void testLogicalNameservicePortAliasCannotBypassOwnership() {
         Configuration hadoopConf = new Configuration(false);
         hadoopConf.set("dfs.nameservices", "mycluster");
-        CatalogContext context = CatalogContext.create(new Options(), hadoopConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(new Options(), hadoopConf);
         Path tableRoot = new Path("hdfs://mycluster/warehouse/table");
         FormatTablePartitionPathResolver resolver =
                 new FormatTablePartitionPathResolver(tableRoot, TABLE_NAME, false, context);
@@ -382,7 +383,7 @@ class FormatTablePartitionPathResolverTest {
         hadoopConf.set("dfs.ha.namenodes.mycluster", "nn1,nn2");
         hadoopConf.set("dfs.namenode.rpc-address.mycluster.nn1", "nn1:8020");
         hadoopConf.set("dfs.namenode.rpc-address.mycluster.nn2", "nn2:8020");
-        CatalogContext context = CatalogContext.create(new Options(), hadoopConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(new Options(), hadoopConf);
         Path tableRoot = new Path("hdfs://mycluster/warehouse/table");
         FormatTablePartitionPathResolver resolver =
                 new FormatTablePartitionPathResolver(tableRoot, TABLE_NAME, false, context);
@@ -408,7 +409,7 @@ class FormatTablePartitionPathResolverTest {
         Configuration hadoopConf = new Configuration(false);
         hadoopConf.set("dfs.nameservices", "federated");
         hadoopConf.set("dfs.namenode.rpc-address.federated", "nn1:8020");
-        CatalogContext context = CatalogContext.create(new Options(), hadoopConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(new Options(), hadoopConf);
         Path tableRoot = new Path("hdfs://federated/warehouse/table");
         FormatTablePartitionPathResolver resolver =
                 new FormatTablePartitionPathResolver(tableRoot, TABLE_NAME, false, context);
@@ -428,7 +429,7 @@ class FormatTablePartitionPathResolverTest {
     void testHdfsCanonicalIdentityIsUsedForFileIoRouting() {
         Configuration hadoopConf = new Configuration(false);
         hadoopConf.set("fs.defaultFS", "hdfs://localhost:8020");
-        CatalogContext context = CatalogContext.create(new Options(), hadoopConf);
+        CatalogContext context = HadoopUtils.createCatalogContext(new Options(), hadoopConf);
         Path tableRoot = new Path("hdfs://localhost:8020/warehouse/table");
 
         assertThat(
