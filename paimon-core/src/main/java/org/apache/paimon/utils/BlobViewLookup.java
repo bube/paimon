@@ -24,6 +24,7 @@ import org.apache.paimon.catalog.Catalog;
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.catalog.CatalogFactory;
 import org.apache.paimon.catalog.Identifier;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.data.Blob;
 import org.apache.paimon.data.BlobDescriptor;
 import org.apache.paimon.data.BlobView;
@@ -76,6 +77,8 @@ public class BlobViewLookup {
             List<BlobViewStruct> viewStructs,
             CatalogLoader catalogLoader) {
         PreloadedBlobViews cached = preloadDescriptors(catalogContext, viewStructs, catalogLoader);
+        SerializableCatalogContext serializableContext =
+                new SerializableCatalogContext(catalogContext);
         return new BlobViewResolver() {
 
             private final Map<Identifier, UriReader> cache = new HashMap<>();
@@ -95,7 +98,8 @@ public class BlobViewLookup {
                         cache.computeIfAbsent(
                                 viewStruct.identifier(),
                                 identifier -> {
-                                    try (Catalog catalog = catalogLoader.create(catalogContext)) {
+                                    try (Catalog catalog =
+                                            catalogLoader.create(serializableContext.get())) {
                                         return UriReader.fromFile(
                                                 catalog.getTable(identifier).fileIO());
                                     } catch (Exception e) {
