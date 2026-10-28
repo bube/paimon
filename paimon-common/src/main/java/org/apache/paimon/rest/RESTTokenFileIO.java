@@ -20,6 +20,7 @@ package org.apache.paimon.rest;
 
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.catalog.Identifier;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.data.BlobDescriptor;
 import org.apache.paimon.fs.FileIO;
 import org.apache.paimon.fs.FileStatus;
@@ -100,7 +101,7 @@ public class RESTTokenFileIO implements FileIO {
                 .getMaximum();
     }
 
-    private final CatalogContext catalogContext;
+    private final SerializableCatalogContext catalogContext;
     private final Identifier identifier;
     private final Path path;
 
@@ -114,7 +115,7 @@ public class RESTTokenFileIO implements FileIO {
 
     public RESTTokenFileIO(
             CatalogContext catalogContext, RESTApi apiInstance, Identifier identifier, Path path) {
-        this.catalogContext = catalogContext;
+        this.catalogContext = new SerializableCatalogContext(catalogContext);
         this.apiInstance = apiInstance;
         this.identifier = identifier;
         this.path = path;
@@ -256,15 +257,15 @@ public class RESTTokenFileIO implements FileIO {
                 return new FileIOWithToken(fileIO, currentToken);
             }
 
-            Options options = catalogContext.options();
+            Options options = catalogContext.get().options();
             options = new Options(RESTUtil.merge(options.toMap(), currentToken.token()));
             options.set(FILE_IO_ALLOW_CACHE, false);
             CatalogContext context =
                     CatalogContext.create(
                             options,
-                            catalogContext.hadoopConf(),
-                            catalogContext.preferIO(),
-                            catalogContext.fallbackIO());
+                            catalogContext.get().hadoopConf(),
+                            catalogContext.get().preferIO(),
+                            catalogContext.get().fallbackIO());
             fileIO = FileIO.get(path, context);
             FILE_IO_CACHE.put(currentToken, fileIO);
             return new FileIOWithToken(fileIO, currentToken);
@@ -314,7 +315,7 @@ public class RESTTokenFileIO implements FileIO {
     private void refreshToken() {
         LOG.info("begin refresh data token for identifier [{}]", identifier);
         if (apiInstance == null) {
-            apiInstance = new RESTApi(catalogContext.options(), false);
+            apiInstance = new RESTApi(catalogContext.get().options(), false);
         }
         Identifier tableIdentifier = identifier;
         if (identifier.isSystemTable()) {
@@ -338,7 +339,7 @@ public class RESTTokenFileIO implements FileIO {
 
     private Map<String, String> mergeTokenWithCatalogOptions(Map<String, String> token) {
         Map<String, String> newToken = Maps.newLinkedHashMap(token);
-        Options catalogOptions = catalogContext.options();
+        Options catalogOptions = catalogContext.get().options();
         // DLF OSS endpoint should override the standard OSS endpoint.
         String dlfOssEndpoint = catalogOptions.get(DLF_OSS_ENDPOINT.key());
         if (dlfOssEndpoint != null && !dlfOssEndpoint.isEmpty()) {

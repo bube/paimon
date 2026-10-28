@@ -21,6 +21,7 @@ package org.apache.paimon.hive;
 import org.apache.paimon.catalog.Catalog;
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.catalog.CatalogLoader;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.fs.FileIO;
 
 /** Loader to create {@link HiveCatalog}. */
@@ -31,7 +32,7 @@ public class HiveCatalogLoader implements CatalogLoader {
     private final FileIO fileIO;
     private final SerializableHiveConf hiveConf;
     private final String clientClassName;
-    private final CatalogContext context;
+    private final SerializableCatalogContext context;
     private final String warehouse;
 
     public HiveCatalogLoader(
@@ -43,12 +44,12 @@ public class HiveCatalogLoader implements CatalogLoader {
         this.fileIO = fileIO;
         this.hiveConf = hiveConf;
         this.clientClassName = clientClassName;
-        this.context = context;
+        this.context = new SerializableCatalogContext(context);
         this.warehouse = warehouse;
     }
 
     @Override
     public Catalog load() {
-        return new HiveCatalog(fileIO, hiveConf.conf(), clientClassName, context, warehouse);
+        return new HiveCatalog(fileIO, hiveConf.conf(), clientClassName, context.get(), warehouse);
     }
 }

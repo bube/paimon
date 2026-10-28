@@ -19,6 +19,7 @@
 package org.apache.paimon.utils;
 
 import org.apache.paimon.catalog.CatalogContext;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.fs.FileIO;
 import org.apache.paimon.fs.Path;
 
@@ -37,11 +38,11 @@ public class UriReaderFactory implements Serializable {
 
     private static final long serialVersionUID = -8477284718943635074L;
 
-    @Nullable private final CatalogContext context;
+    @Nullable private final SerializableCatalogContext context;
     private transient Map<UriKey, UriReader> readers;
 
     public UriReaderFactory(@Nullable CatalogContext context) {
-        this.context = context;
+        this.context = context == null ? null : new SerializableCatalogContext(context);
         this.readers = new ConcurrentHashMap<>();
     }
 
@@ -95,7 +96,7 @@ public class UriReaderFactory implements Serializable {
         }
 
         try {
-            FileIO createdFileIO = FileIO.get(new Path(uri), Objects.requireNonNull(context));
+            FileIO createdFileIO = FileIO.get(new Path(uri), Objects.requireNonNull(context).get());
             return UriReader.fromFile(createdFileIO);
         } catch (IOException e) {
             throw new RuntimeException(e);

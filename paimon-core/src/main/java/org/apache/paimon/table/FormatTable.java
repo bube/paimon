@@ -25,6 +25,7 @@ import org.apache.paimon.annotation.Public;
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.catalog.CatalogUtils;
 import org.apache.paimon.catalog.Identifier;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.fs.FileIO;
 import org.apache.paimon.manifest.IndexManifestEntry;
 import org.apache.paimon.manifest.ManifestEntry;
@@ -213,7 +214,7 @@ public interface FormatTable extends Table {
         private final Format format;
         private final Map<String, String> options;
         @Nullable private final String comment;
-        private CatalogContext catalogContext;
+        @Nullable private final SerializableCatalogContext catalogContext;
         @Nullable private final FormatTablePartitionManager partitionManager;
 
         public FormatTableImpl(
@@ -235,7 +236,8 @@ public interface FormatTable extends Table {
             this.format = format;
             this.options = options;
             this.comment = comment;
-            this.catalogContext = catalogContext;
+            this.catalogContext =
+                    catalogContext == null ? null : new SerializableCatalogContext(catalogContext);
             this.partitionManager = partitionManager;
         }
 
@@ -326,7 +328,7 @@ public interface FormatTable extends Table {
                     format,
                     newOptions,
                     comment,
-                    catalogContext,
+                    catalogContext(),
                     partitionManager);
         }
 
@@ -353,7 +355,7 @@ public interface FormatTable extends Table {
 
         @Override
         public CatalogContext catalogContext() {
-            return this.catalogContext;
+            return catalogContext == null ? null : catalogContext.get();
         }
 
         @Override

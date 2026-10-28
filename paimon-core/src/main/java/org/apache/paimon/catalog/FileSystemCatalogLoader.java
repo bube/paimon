@@ -28,16 +28,16 @@ public class FileSystemCatalogLoader implements CatalogLoader {
 
     private final FileIO fileIO;
     private final Path warehouse;
-    private final CatalogContext context;
+    private final SerializableCatalogContext context;
 
     public FileSystemCatalogLoader(FileIO fileIO, Path warehouse, CatalogContext context) {
         this.fileIO = fileIO;
         this.warehouse = warehouse;
-        this.context = context;
+        this.context = new SerializableCatalogContext(context);
     }
 
     @Override
     public Catalog load() {
-        return new FileSystemCatalog(fileIO, warehouse, context);
+        return new FileSystemCatalog(fileIO, warehouse, context.get());
     }
 }

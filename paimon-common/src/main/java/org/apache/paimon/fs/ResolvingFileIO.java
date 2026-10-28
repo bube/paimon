@@ -19,6 +19,7 @@
 package org.apache.paimon.fs;
 
 import org.apache.paimon.catalog.CatalogContext;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.data.BlobDescriptor;
 import org.apache.paimon.options.CatalogOptions;
 import org.apache.paimon.options.Options;
@@ -42,12 +43,12 @@ public class ResolvingFileIO implements FileIO {
 
     private final Map<CacheKey, FileIO> fileIOMap = new ConcurrentHashMap<>();
 
-    private CatalogContext context;
+    private SerializableCatalogContext context;
 
     // TODO, how to decide the real fileio is object store or not?
     @Override
     public boolean isObjectStore() {
-        String warehouse = context.options().get(CatalogOptions.WAREHOUSE);
+        String warehouse = context.get().options().get(CatalogOptions.WAREHOUSE);
         if (warehouse == null) {
             return false;
         }
@@ -64,8 +65,12 @@ public class ResolvingFileIO implements FileIO {
         context.options().toMap().forEach(options::set);
         options.set(RESOLVING_FILE_IO_ENABLED, false);
         this.context =
-                CatalogContext.create(
-                        options, context.hadoopConf(), context.preferIO(), context.fallbackIO());
+                new SerializableCatalogContext(
+                        CatalogContext.create(
+                                options,
+                                context.hadoopConf(),
+                                context.preferIO(),
+                                context.fallbackIO()));
     }
 
     @Override
@@ -147,7 +152,7 @@ public class ResolvingFileIO implements FileIO {
                 cacheKey,
                 k -> {
                     try {
-                        return FileIO.get(path, context);
+                        return FileIO.get(path, context.get());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

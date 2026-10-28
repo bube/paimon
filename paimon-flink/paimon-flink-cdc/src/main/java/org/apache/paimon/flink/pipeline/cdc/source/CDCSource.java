@@ -21,6 +21,7 @@ package org.apache.paimon.flink.pipeline.cdc.source;
 import org.apache.paimon.catalog.Catalog;
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.catalog.Identifier;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.disk.IOManager;
 import org.apache.paimon.flink.metrics.FlinkMetricRegistry;
 import org.apache.paimon.flink.pipeline.cdc.source.enumerator.CDCCheckpoint;
@@ -64,7 +65,7 @@ public class CDCSource implements Source<Event, TableAwareFileStoreSourceSplit, 
 
     private static final long serialVersionUID = 1L;
 
-    private final CatalogContext catalogContext;
+    private final SerializableCatalogContext catalogContext;
     private final Configuration cdcConfig;
     private final org.apache.flink.configuration.Configuration flinkConfig;
 
@@ -72,7 +73,7 @@ public class CDCSource implements Source<Event, TableAwareFileStoreSourceSplit, 
             CatalogContext catalogContext,
             Configuration cdcConfig,
             org.apache.flink.configuration.Configuration flinkConfig) {
-        this.catalogContext = catalogContext;
+        this.catalogContext = new SerializableCatalogContext(catalogContext);
         this.cdcConfig = cdcConfig;
         this.flinkConfig = flinkConfig;
     }
@@ -96,10 +97,11 @@ public class CDCSource implements Source<Event, TableAwareFileStoreSourceSplit, 
                 context,
                 flinkConfig,
                 catalogContext
+                        .get()
                         .options()
                         .get(org.apache.paimon.CoreOptions.CONTINUOUS_DISCOVERY_INTERVAL)
                         .toMillis(),
-                catalogContext,
+                catalogContext.get(),
                 cdcConfig,
                 checkpoint);
     }
@@ -123,7 +125,7 @@ public class CDCSource implements Source<Event, TableAwareFileStoreSourceSplit, 
         FileStoreSourceReaderMetrics sourceReaderMetrics =
                 new FileStoreSourceReaderMetrics(metricGroup);
 
-        Catalog catalog = createCatalog(catalogContext, flinkConfig);
+        Catalog catalog = createCatalog(catalogContext.get(), flinkConfig);
         TableManager manager = new TableManager(catalog, ioManager, metricGroup);
         return new CDCSourceReader(context, sourceReaderMetrics, ioManager, manager);
     }

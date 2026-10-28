@@ -21,6 +21,7 @@ package org.apache.paimon.jdbc;
 import org.apache.paimon.catalog.Catalog;
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.catalog.CatalogLoader;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.fs.FileIO;
 
 /** Loader to create {@link JdbcCatalog}. */
@@ -30,19 +31,19 @@ public class JdbcCatalogLoader implements CatalogLoader {
 
     private final FileIO fileIO;
     private final String catalogKey;
-    private final CatalogContext context;
+    private final SerializableCatalogContext context;
     private final String warehouse;
 
     public JdbcCatalogLoader(
             FileIO fileIO, String catalogKey, CatalogContext context, String warehouse) {
         this.fileIO = fileIO;
         this.catalogKey = catalogKey;
-        this.context = context;
+        this.context = new SerializableCatalogContext(context);
         this.warehouse = warehouse;
     }
 
     @Override
     public Catalog load() {
-        return new JdbcCatalog(fileIO, catalogKey, context, warehouse);
+        return new JdbcCatalog(fileIO, catalogKey, context.get(), warehouse);
     }
 }

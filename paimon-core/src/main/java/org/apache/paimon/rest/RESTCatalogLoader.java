@@ -20,24 +20,25 @@ package org.apache.paimon.rest;
 
 import org.apache.paimon.catalog.CatalogContext;
 import org.apache.paimon.catalog.CatalogLoader;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 
 /** Loader to create {@link RESTCatalog}. */
 public class RESTCatalogLoader implements CatalogLoader {
 
     private static final long serialVersionUID = 1L;
 
-    private final CatalogContext context;
+    private final SerializableCatalogContext context;
 
     public RESTCatalogLoader(CatalogContext context) {
-        this.context = context;
+        this.context = new SerializableCatalogContext(context);
     }
 
     public CatalogContext context() {
-        return context;
+        return context.get();
     }
 
     @Override
     public RESTCatalog load() {
-        return new RESTCatalog(context, false);
+        return new RESTCatalog(context.get(), false);
     }
 }

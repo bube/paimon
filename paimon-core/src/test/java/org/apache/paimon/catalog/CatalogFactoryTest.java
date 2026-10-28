@@ -21,10 +21,14 @@ package org.apache.paimon.catalog;
 import org.apache.paimon.fs.Path;
 import org.apache.paimon.fs.local.LocalFileIO;
 import org.apache.paimon.options.Options;
+import org.apache.paimon.schema.Schema;
 import org.apache.paimon.table.CatalogTableType;
+import org.apache.paimon.table.FileStoreTable;
+import org.apache.paimon.types.DataTypes;
 import org.apache.paimon.utils.HadoopUtilsITCase.TestFileIOLoader;
 import org.apache.paimon.utils.InstantiationUtil;
 import org.apache.paimon.utils.TraceableFileIO;
+import org.apache.paimon.utils.UriReaderFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
@@ -174,6 +178,24 @@ public class CatalogFactoryTest {
             Field hadoopConfField = CatalogContext.class.getDeclaredField("hadoopConf");
             hadoopConfField.setAccessible(true);
             assertThat(hadoopConfField.get(context)).isNull();
+
+            // CatalogContext itself cannot be Java-serialised without Hadoop, its holders can.
+            CatalogLoader loader = InstantiationUtil.clone(catalog.catalogLoader(), classLoader);
+            assertThat(loader.load().listDatabases()).isEmpty();
+
+            Identifier identifier = Identifier.create("db", "t");
+            catalog.createDatabase("db", false);
+            catalog.createTable(
+                    identifier, Schema.newBuilder().column("a", DataTypes.INT()).build(), false);
+            FileStoreTable table =
+                    InstantiationUtil.clone(
+                            (FileStoreTable) catalog.getTable(identifier), classLoader);
+            assertThat(table.schemaManager().latest().get().fieldNames()).containsExactly("a");
+            assertThat(table.catalogEnvironment().catalogContext().options()).isEqualTo(options);
+
+            UriReaderFactory readers =
+                    InstantiationUtil.clone(new UriReaderFactory(context), classLoader);
+            assertThat(readers.exists(warehouse)).isTrue();
         }
     }
 }

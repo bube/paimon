@@ -27,6 +27,7 @@ import org.apache.paimon.catalog.CatalogLockFactory;
 import org.apache.paimon.catalog.CatalogSnapshotCommit;
 import org.apache.paimon.catalog.Identifier;
 import org.apache.paimon.catalog.RenamingSnapshotCommit;
+import org.apache.paimon.catalog.SerializableCatalogContext;
 import org.apache.paimon.catalog.SnapshotCommit;
 import org.apache.paimon.catalog.TableRollback;
 import org.apache.paimon.operation.Lock;
@@ -60,7 +61,7 @@ public class CatalogEnvironment implements Serializable {
     @Nullable private final CatalogLoader catalogLoader;
     @Nullable private final CatalogLockFactory lockFactory;
     @Nullable private final CatalogLockContext lockContext;
-    @Nullable private final CatalogContext catalogContext;
+    @Nullable private final SerializableCatalogContext catalogContext;
     private final boolean supportsVersionManagement;
     private final boolean supportsPartitionModification;
 
@@ -78,7 +79,8 @@ public class CatalogEnvironment implements Serializable {
         this.catalogLoader = catalogLoader;
         this.lockFactory = lockFactory;
         this.lockContext = lockContext;
-        this.catalogContext = catalogContext;
+        this.catalogContext =
+                catalogContext == null ? null : new SerializableCatalogContext(catalogContext);
         this.supportsVersionManagement = supportsVersionManagement;
         this.supportsPartitionModification = supportsPartitionModification;
     }
@@ -245,7 +247,7 @@ public class CatalogEnvironment implements Serializable {
 
     @Nullable
     public CatalogContext catalogContext() {
-        return catalogContext;
+        return catalogContext == null ? null : catalogContext.get();
     }
 
     /**
@@ -257,6 +259,7 @@ public class CatalogEnvironment implements Serializable {
      */
     @Nullable
     CatalogContext dependencyReadContext() {
+        CatalogContext catalogContext = catalogContext();
         if (identifier == null || catalogContext == null) {
             return catalogContext;
         }
@@ -294,7 +297,7 @@ public class CatalogEnvironment implements Serializable {
                 catalogLoader,
                 lockFactory,
                 lockContext,
-                catalogContext,
+                catalogContext(),
                 supportsVersionManagement,
                 supportsPartitionModification);
     }
