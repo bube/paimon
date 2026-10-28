@@ -174,6 +174,15 @@ public class CatalogFactoryTest {
             Field hadoopConfField = CatalogContext.class.getDeclaredField("hadoopConf");
             hadoopConfField.setAccessible(true);
             assertThat(hadoopConfField.get(context)).isNull();
+
+            // Java serialisation resolves every method signature of the class, so a
+            // Configuration in any CatalogContext signature fails here without Hadoop.
+            CatalogContext clonedContext = InstantiationUtil.clone(context, classLoader);
+            assertThat(clonedContext.options()).isEqualTo(options);
+
+            CatalogLoader clonedLoader =
+                    InstantiationUtil.clone(catalog.catalogLoader(), classLoader);
+            assertThat(clonedLoader.load().listDatabases()).isEmpty();
         }
     }
 }
